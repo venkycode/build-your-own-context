@@ -6,28 +6,43 @@ import (
 )
 
 func doneUsecase() {
-	go hearbeat()
+	done := make(chan struct{})
+	go hearbeat(done)
 
-	go pushStateUpdates()
+	go pushStateUpdates(done)
 
-	mainWork()
+	mainWork(done)
 }
 
-func hearbeat() {
+func hearbeat(done chan struct{}) {
 	for {
-		onebeat()
+		select {
+		case <-done:
+			fmt.Println("------>stopped heartbeat<----")
+			return
+		default:
+			onebeat()
+		}
 	}
 }
 
-func pushStateUpdates() {
+func pushStateUpdates(done chan struct{}) {
+
 	for {
-		onePushStateUpdate()
+		select {
+		case <-done:
+			fmt.Println("------>stopped state updates<----")
+			return
+		default:
+			onePushStateUpdate()
+		}
 	}
 }
 
-func mainWork() {
+func mainWork(done chan struct{}) {
 	workFor(2000)
 	fmt.Println("->Main work done<-")
+	close(done)
 }
 
 func onebeat() {
