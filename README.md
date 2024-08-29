@@ -6,3 +6,4 @@
 ## Topics 
 
 1. [Need for context](cmd/examples/1/README.md)
+2. [Gotchas regarding context](/gotchas.md)
