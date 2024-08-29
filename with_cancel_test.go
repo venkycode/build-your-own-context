@@ -32,3 +32,55 @@ func Test_WithCancel(t *testing.T) {
 		t.Error("ctx.Done() should be closed after cancel()")
 	}
 }
+
+func Test_WithCancel_propogation(t *testing.T) {
+	parent, cancel := WithCancel(Background())
+	child, _ := WithCancel(parent)
+
+	require.Nil(t, child.Err())
+
+	cancel()
+	require.ErrorIs(t, child.Err(), Canceled)
+}
+
+func Test_WithCancel_propogation2(t *testing.T) {
+	/*
+		Creates a context tree like this:
+		Background-root
+		|
+		|---cancelCtx1---cancelCtx3---cancelCtx5
+		|		|
+		|		|---cancelCtx4
+		|
+		|
+		|---cancelCtx2---cancelCtx6
+
+	*/
+
+	root := Background()
+
+	cancelCtx1, cancel1 := WithCancel(root)
+
+	cancelCtx2, _ := WithCancel(root)
+
+	cancelCtx3, _ := WithCancel(cancelCtx1)
+
+	cancelCtx4, _ := WithCancel(cancelCtx1)
+
+	cancelCtx5, _ := WithCancel(cancelCtx3)
+
+	cancelCtx6, cancel6 := WithCancel(cancelCtx2)
+
+	cancel1()
+
+	require.ErrorIs(t, cancelCtx1.Err(), Canceled)
+	require.ErrorIs(t, cancelCtx3.Err(), Canceled)
+	require.ErrorIs(t, cancelCtx5.Err(), Canceled)
+	require.ErrorIs(t, cancelCtx4.Err(), Canceled)
+
+	require.Nil(t, cancelCtx2.Err())
+
+	cancel6()
+	require.ErrorIs(t, cancelCtx6.Err(), Canceled)
+	require.Nil(t, cancelCtx2.Err())
+}
