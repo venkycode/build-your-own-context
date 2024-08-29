@@ -6,6 +6,7 @@ import "time"
 // it is never (or can not be) cancelled, has no values, and has no deadline
 // usually initialized in main() and passed down topmost function calls
 type background struct {
+	children
 }
 
 func (b *background) Value(key interface{}) interface{} {

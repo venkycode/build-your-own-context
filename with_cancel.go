@@ -2,11 +2,12 @@ package byo_context
 
 import (
 	"errors"
-	"time"
 )
 
 // not concurrent safe
 type cancelCtx struct {
+	Context // embed the parent context (Deadline, Value) derived from the parent context
+	children
 	done chan struct{}
 }
 
@@ -25,23 +26,15 @@ func (c *cancelCtx) Err() error {
 	}
 }
 
-func (c *cancelCtx) Deadline() (deadline time.Time, ok bool) {
-	//todo implement
-	return
-}
-
-func (c *cancelCtx) Value(key interface{}) interface{} {
-	//todo implement
-	return nil
-}
-
 // when this function is called, the context is cancelled
 type CancelFunc func()
 
 func WithCancel(parent Context) (ctx Context, cancel CancelFunc) {
 	c := &cancelCtx{
-		done: make(chan struct{}),
+		Context: parent,
+		done:    make(chan struct{}),
 	}
+	parent.(treeOps).addChild(c)
 	return c, func() {
 		c.cancel()
 	}
@@ -53,4 +46,15 @@ func (c *cancelCtx) cancel() {
 	default:
 		close(c.done)
 	}
+	c.cancelChildren()
+}
+
+func (c *cancelCtx) cancelChildren() {
+	for child := range c.children {
+		cancellable, ok := child.(interface{ cancel() })
+		if ok {
+			cancellable.cancel()
+		}
+	}
+	c.children = nil
 }
