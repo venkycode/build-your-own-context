@@ -7,3 +7,4 @@
 
 1. [Need for context](cmd/examples/1/README.md)
 2. [Gotchas regarding context](/gotchas.md)
+3. [Building context functionalities](/building-context.md)
