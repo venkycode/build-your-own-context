@@ -23,6 +23,7 @@ func (ch *children) removeAll() {
 type treeOps interface {
 	addChild(ctx Context)
 	removeChild(ctx Context)
+	removeAll()
 }
 
 // assert that background implements the treeOps interface
@@ -30,3 +31,9 @@ var _ treeOps = &background{}
 
 // assert that cancelCtx implements the treeOps interface
 var _ treeOps = &cancelCtx{}
+
+// assert that valueCtx implements the treeOps interface
+var _ treeOps = &valueCtx{}
+
+// assert that deadlineCtx implements the treeOps interface
+var _ treeOps = &deadlineCtx{}
