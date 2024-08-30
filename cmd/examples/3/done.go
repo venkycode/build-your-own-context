@@ -3,21 +3,25 @@ package main
 import (
 	"fmt"
 	"time"
+
+	context "github.com/venkycode/build-your-own-context"
 )
 
-func doneUsecase() {
-	done := make(chan struct{})
-	go hearbeat(done)
+func withCancelUsecase(ctx context.Context) {
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
 
-	go pushStateUpdates(done)
+	go hearbeat(ctx)
 
-	mainWork(done)
+	go pushStateUpdates(ctx)
+
+	mainWork(ctx)
 }
 
-func hearbeat(done chan struct{}) {
+func hearbeat(ctx context.Context) {
 	for {
 		select {
-		case <-done:
+		case <-ctx.Done():
 			fmt.Println("------>stopped heartbeat<----")
 			return
 		default:
@@ -26,11 +30,11 @@ func hearbeat(done chan struct{}) {
 	}
 }
 
-func pushStateUpdates(done chan struct{}) {
+func pushStateUpdates(ctx context.Context) {
 
 	for {
 		select {
-		case <-done:
+		case <-ctx.Done():
 			fmt.Println("------>stopped state updates<----")
 			return
 		default:
@@ -39,10 +43,9 @@ func pushStateUpdates(done chan struct{}) {
 	}
 }
 
-func mainWork(done chan struct{}) {
+func mainWork(ctx context.Context) {
 	workFor(2000)
 	fmt.Println("->Main work done<-")
-	close(done)
 }
 
 func onebeat() {

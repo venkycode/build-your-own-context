@@ -1,15 +1,17 @@
 package main
 
 import (
-	_ "context"
+	context "github.com/venkycode/build-your-own-context"
 )
 
 func main() {
-	deadlineUseCase()
-	busyWork()
+	ctx := context.Background()
+
+	withCancelUsecase(ctx)
+	busyWork(ctx)
 }
 
-func busyWork() {
+func busyWork(ctx context.Context) {
 	for {
 	}
 }
