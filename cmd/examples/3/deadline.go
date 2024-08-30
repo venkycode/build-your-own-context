@@ -3,34 +3,29 @@ package main
 import (
 	"fmt"
 	"time"
+
+	context "github.com/venkycode/build-your-own-context"
 )
 
-func deadlineUseCase() {
-	t := time.NewTimer(1 * time.Second)
-	defer t.Stop()
-	done := make(chan struct{})
-	go func() {
-		<-t.C
-		fmt.Println("Times up!")
-		close(done)
-	}()
-
-	makeDinner(done)
+func deadlineUseCase(ctx context.Context) {
+	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
+	defer cancel()
+	makeDinner(ctx)
 }
 
-func makeDinner(done chan struct{}) {
+func makeDinner(ctx context.Context) {
 	select {
-	case <-done:
+	case <-ctx.Done():
 		return
 	default:
 	}
-	makeDaalTadka(done)
-	makeRice(done)
-	makeRoti(done)
-	makeAlooGobi(done)
+	makeDaalTadka(ctx)
+	makeRice(ctx)
+	makeRoti(ctx)
+	makeAlooGobi(ctx)
 
 	select {
-	case <-done:
+	case <-ctx.Done():
 		fmt.Println("could not finish dinner")
 		return
 	default:
@@ -38,9 +33,9 @@ func makeDinner(done chan struct{}) {
 	}
 }
 
-func makeRoti(done chan struct{}) {
+func makeRoti(ctx context.Context) {
 	select {
-	case <-done:
+	case <-ctx.Done():
 		fmt.Println("No time for roti")
 		return
 	default:
@@ -49,18 +44,18 @@ func makeRoti(done chan struct{}) {
 	fmt.Println("Roti ready")
 }
 
-func makeAlooGobi(done chan struct{}) {
+func makeAlooGobi(ctx context.Context) {
 	select {
-	case <-done:
+	case <-ctx.Done():
 		fmt.Println("No time for aloo gobi")
 		return
 	default:
 	}
-	prepareAloo(done)
-	prepareGobi(done)
+	prepareAloo(ctx)
+	prepareGobi(ctx)
 
 	select {
-	case <-done:
+	case <-ctx.Done():
 		fmt.Println("could not finish aloo gobi")
 		return
 	default:
@@ -68,9 +63,9 @@ func makeAlooGobi(done chan struct{}) {
 	}
 }
 
-func prepareAloo(done chan struct{}) {
+func prepareAloo(ctx context.Context) {
 	select {
-	case <-done:
+	case <-ctx.Done():
 		fmt.Println("No time for aloo")
 		return
 	default:
@@ -79,9 +74,9 @@ func prepareAloo(done chan struct{}) {
 	fmt.Println("Aloo prepared")
 }
 
-func prepareGobi(done chan struct{}) {
+func prepareGobi(ctx context.Context) {
 	select {
-	case <-done:
+	case <-ctx.Done():
 		fmt.Println("No time for gobi")
 		return
 	default:
@@ -90,9 +85,9 @@ func prepareGobi(done chan struct{}) {
 	fmt.Println("Gobi prepared")
 }
 
-func makeRice(done chan struct{}) {
+func makeRice(ctx context.Context) {
 	select {
-	case <-done:
+	case <-ctx.Done():
 		fmt.Println("No time for rice")
 		return
 	default:
@@ -101,18 +96,18 @@ func makeRice(done chan struct{}) {
 	fmt.Println("Rice cooked")
 }
 
-func makeDaalTadka(done chan struct{}) {
+func makeDaalTadka(ctx context.Context) {
 	select {
-	case <-done:
+	case <-ctx.Done():
 		fmt.Println("No time for daal tadka")
 		return
 	default:
 	}
-	go prepareTadka(done)
-	boilDaal(done)
+	go prepareTadka(ctx)
+	boilDaal(ctx)
 
 	select {
-	case <-done:
+	case <-ctx.Done():
 		fmt.Println("could not finish daal tadka")
 		return
 	default:
@@ -120,9 +115,9 @@ func makeDaalTadka(done chan struct{}) {
 	}
 }
 
-func boilDaal(done chan struct{}) {
+func boilDaal(ctx context.Context) {
 	select {
-	case <-done:
+	case <-ctx.Done():
 		fmt.Println("No time for daal")
 		return
 	default:
@@ -131,9 +126,9 @@ func boilDaal(done chan struct{}) {
 	fmt.Println("Daal boiled")
 }
 
-func prepareTadka(done chan struct{}) {
+func prepareTadka(ctx context.Context) {
 	select {
-	case <-done:
+	case <-ctx.Done():
 		fmt.Println("No time for tadka")
 		return
 	default:

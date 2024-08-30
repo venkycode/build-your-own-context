@@ -7,7 +7,7 @@ import (
 func main() {
 	ctx := context.Background()
 
-	withCancelUsecase(ctx)
+	deadlineUseCase(ctx)
 	busyWork(ctx)
 }
 
