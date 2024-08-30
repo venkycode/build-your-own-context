@@ -9,6 +9,7 @@ type cancelCtx struct {
 	Context // embed the parent context (Deadline, Value) derived from the parent context
 	children
 	done chan struct{}
+	err  error
 }
 
 func (c *cancelCtx) Done() <-chan struct{} {
@@ -18,12 +19,7 @@ func (c *cancelCtx) Done() <-chan struct{} {
 var Canceled = errors.New("context canceled")
 
 func (c *cancelCtx) Err() error {
-	select {
-	case <-c.done:
-		return Canceled
-	default:
-		return nil
-	}
+	return c.err
 }
 
 // when this function is called, the context is cancelled
@@ -36,25 +32,30 @@ func WithCancel(parent Context) (ctx Context, cancel CancelFunc) {
 	}
 	parent.(treeOps).addChild(c)
 	return c, func() {
-		c.cancel()
+		c.cancel(Canceled)
 	}
 }
 
-func (c *cancelCtx) cancel() {
+func (c *cancelCtx) cancel(err error) {
 	select {
 	case <-c.done:
 	default:
 		close(c.done)
+		cancelChildren(c.children, err)
+		c.err = err
 	}
-	cancelChildren(c.children)
 }
 
-func cancelChildren(children children) {
+func cancelChildren(children children, err error) {
 	for child := range children {
-		cancellable, ok := child.(interface{ cancel() })
+		canceller, ok := child.(cannceller)
 		if ok {
-			cancellable.cancel()
+			canceller.cancel(err)
 		}
 	}
 	children.removeAll()
+}
+
+type cannceller interface {
+	cancel(error)
 }
