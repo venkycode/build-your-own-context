@@ -59,16 +59,21 @@ func exprectDeadline(t *testing.T, ctx Context, deadline time.Time) {
 func Test_Deadline_override_deadline(t *testing.T) {
 	root := Background()
 
-	deadline := after(100 * time.Millisecond)
+	deadline1 := after(100 * time.Millisecond)
 
-	ctx1, _ := WithDeadline(root, deadline)
+	ctx1, _ := WithDeadline(root, deadline1)
 
-	newDeadline := after(200 * time.Millisecond)
+	// new deadline is before the parent deadline
+	deadline2 := after(50 * time.Millisecond)
 
-	ctx2, _ := WithDeadline(ctx1, newDeadline)
+	ctx2, _ := WithDeadline(ctx1, deadline2)
 
-	exprectDeadline(t, ctx2, newDeadline)
-	exprectDeadline(t, ctx1, deadline)
+	exprectDeadline(t, ctx2, deadline2)
+	exprectDeadline(t, ctx1, deadline1)
+
+	dealine3 := after(150 * time.Millisecond)
+	ctx3, _ := WithDeadline(ctx1, dealine3) // dedline is after the parent deadline
+	exprectDeadline(t, ctx3, deadline1)     // deadline is the parent deadline, as it is before the new deadline
 }
 
 func Test_Deadline_early_cancel(t *testing.T) {

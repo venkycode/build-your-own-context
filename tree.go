@@ -1,14 +1,11 @@
 package byo_context
 
-import "fmt"
-
 type children map[Context]struct{}
 
 func (ch *children) addChild(ctx Context) {
 	if *ch == nil {
 		*ch = make(map[Context]struct{})
 	}
-	fmt.Println("children: addChild called")
 	(*ch)[ctx] = struct{}{}
 }
 
@@ -17,6 +14,10 @@ func (ch *children) removeChild(ctx Context) {
 		panic("children: removeChild called on nil children")
 	}
 	delete(*ch, ctx)
+}
+
+func (ch *children) removeAll() {
+	*ch = nil
 }
 
 type treeOps interface {

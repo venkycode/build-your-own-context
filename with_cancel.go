@@ -46,15 +46,15 @@ func (c *cancelCtx) cancel() {
 	default:
 		close(c.done)
 	}
-	c.cancelChildren()
+	cancelChildren(c.children)
 }
 
-func (c *cancelCtx) cancelChildren() {
-	for child := range c.children {
+func cancelChildren(children children) {
+	for child := range children {
 		cancellable, ok := child.(interface{ cancel() })
 		if ok {
 			cancellable.cancel()
 		}
 	}
-	c.children = nil
+	children.removeAll()
 }
