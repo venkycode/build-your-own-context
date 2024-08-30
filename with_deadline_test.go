@@ -25,7 +25,7 @@ func Test_WithDeadline(t *testing.T) {
 		t.Error("context should not be done")
 	default:
 	}
-	exprectDeadline(t, ctx, deadline)
+	expectDeadline(t, ctx, deadline)
 	time.Sleep(50 * time.Millisecond)
 
 	select {
@@ -33,7 +33,7 @@ func Test_WithDeadline(t *testing.T) {
 	default:
 		t.Error("context should be done")
 	}
-	exprectDeadline(t, ctx, deadline)
+	expectDeadline(t, ctx, deadline)
 
 	// no effect of cancel after deadline
 	cancel()
@@ -43,13 +43,13 @@ func Test_WithDeadline(t *testing.T) {
 	default:
 		t.Error("context should be done")
 	}
-	exprectDeadline(t, ctx, deadline)
+	expectDeadline(t, ctx, deadline)
 
 	require.ErrorIs(t, ctx.Err(), DeadlineExceeded)
 
 }
 
-func exprectDeadline(t *testing.T, ctx Context, deadline time.Time) {
+func expectDeadline(t *testing.T, ctx Context, deadline time.Time) {
 	t.Helper()
 	d, ok := ctx.Deadline()
 	require.True(t, ok)
@@ -68,12 +68,12 @@ func Test_Deadline_override_deadline(t *testing.T) {
 
 	ctx2, _ := WithDeadline(ctx1, deadline2)
 
-	exprectDeadline(t, ctx2, deadline2)
-	exprectDeadline(t, ctx1, deadline1)
+	expectDeadline(t, ctx2, deadline2)
+	expectDeadline(t, ctx1, deadline1)
 
 	dealine3 := after(150 * time.Millisecond)
 	ctx3, _ := WithDeadline(ctx1, dealine3) // dedline is after the parent deadline
-	exprectDeadline(t, ctx3, deadline1)     // deadline is the parent deadline, as it is before the new deadline
+	expectDeadline(t, ctx3, deadline1)      // deadline is the parent deadline, as it is before the new deadline
 }
 
 func Test_Deadline_early_cancel(t *testing.T) {
@@ -92,4 +92,37 @@ func Test_Deadline_early_cancel(t *testing.T) {
 	}
 
 	require.ErrorIs(t, ctx.Err(), Canceled)
+}
+
+func Test_WithTimeout(t *testing.T) {
+	root := Background()
+
+	ctx, cancel := WithTimeout(root, 100*time.Millisecond)
+
+	time.Sleep(50 * time.Millisecond)
+
+	select {
+	case <-ctx.Done():
+		t.Error("context should not be done")
+	default:
+	}
+	time.Sleep(51 * time.Millisecond)
+
+	select {
+	case <-ctx.Done():
+	default:
+		t.Error("context should be done")
+	}
+
+	// no effect of cancel after deadline
+	cancel()
+
+	select {
+	case <-ctx.Done():
+	default:
+		t.Error("context should be done")
+	}
+
+	require.ErrorIs(t, ctx.Err(), DeadlineExceeded)
+
 }

@@ -50,6 +50,10 @@ func WithDeadline(parent Context, deadline time.Time) (Context, CancelFunc) {
 	}
 }
 
+func WithTimeout(parent Context, timeout time.Duration) (Context, CancelFunc) {
+	return WithDeadline(parent, time.Now().Add(timeout))
+}
+
 func embedCancelCtx(parent Context) cancelCtx {
 	return cancelCtx{
 		Context: parent,

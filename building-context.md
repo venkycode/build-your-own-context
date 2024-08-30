@@ -12,3 +12,6 @@ Cancelling a child context does not cancel the parent context.
 ## 3. `context.WithDeadline`
 This is used to create a context that is cancelled when the deadline is reached. It returns a context and a cancel function. The cancel function should be called when the context is no longer needed.
 When the deadline is reached, the context is cancelled and all contexts derived from it are also cancelled.
+
+## 4. `context.WithTimeout`
+This is just a shorthand for `context.WithDeadline(parent, time.Now().Add(timeout))`.
